@@ -2,6 +2,9 @@
 
 using import testing
 
+from (import scoot.scope.tools) let
+    in-scope?
+
 print "----------------------------------------"
 print "FFI"
 print "----------------------------------------"
@@ -29,6 +32,11 @@ let sanitized_simple =
 run-stage;
 
 # test that the symbols were renamed correctly
-print sanitized_simple.JACK
+test (in-scope? sanitized_simple 'JACK)
+test (not (in-scope? sanitized_simple 'SPL_JACK))
+test (in-scope? sanitized_simple 'JANE)
+test (not (in-scope? sanitized_simple 'SPL_JANE))
+
+# test (in-scope? sanitized_simple 'JANE)
 
 ;

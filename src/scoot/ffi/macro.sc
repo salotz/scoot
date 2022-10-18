@@ -1,9 +1,37 @@
 # Tools for dealing with macros in wrapped code
 
+# Original Author: Westerbly (radgeRayden) Snaydley
+# Date: 2021-01-21
+
+using import itertools
+using import format
+
 # TODO: remove this dependency
 let stringtools = (import stringtools)
 
-fn typename->Ctypename (sym)
+let MACRO_WRAPPER_PREFIX = "scopes_macro_wrapper__"
+let MACRO_WRAPPER_REGEXP = (.. "^" MACRO-WRAPPER-PREFIX)
+let CONSTANT_WRAPPER_PREFIX = "scopes_constant_wrapper__"
+let CONSTANT_WRAPPER_REGEXP = (.. "^" CONSTANT-WRAPPER-PREFIX)
+
+# TODO: convert to `format` strings
+let MACRO_WRAPPER_TEMPLATE =
+    """"typeof(${macro}(${gen-C-arglist dummy-values}))
+        ${macro-wrapper-prefix}${macro} (${gen-C-arglist fn-args}) {
+            return ${macro}(${gen-C-arglist forwarded});
+        }
+
+
+let CONSTANT_WRAPPER_TEMPLATE =
+    """"typeof(${macro}) ${constant-wrapper-prefix}${macro} () {
+                    return ${macro};
+                }
+
+fn typename->C-typename (symbol)
+    """"Transform scopes type names to C type names
+
+        Parameters
+            sym
     let T =
         try
             ('@ (globals) (sym as Symbol))
@@ -41,12 +69,19 @@ fn typename->Ctypename (sym)
     else
         tostring (T as Symbol)
 
-let macro-wrapper-prefix = "scopes_macro_wrapper__"
-let macro-wrapper-regexp = (.. "^" macro-wrapper-prefix)
-let constant-wrapper-prefix = "scopes_constant_wrapper__"
-let constant-wrapper-regexp = (.. "^" constant-wrapper-prefix)
-
 fn gen-C-arglist (args)
+    """"Construct a string of comma separated arguments.
+
+        (arg1, arg2, arg3) -> "arg1, arg2, arg3"
+
+        Parameters
+            args
+                Arguments object to transform to string
+
+        Returns
+            arglist
+                String of formatted arguments
+
     argcount := ('argcount args)
     if (argcount == 0)
         ""
@@ -58,13 +93,13 @@ fn gen-C-arglist (args)
         else
             .. result arg ", "
 
-# runtime dependant
+# ALERT: runtime dependant
 fn gen-macro-wrapper-fn (macro args)
     argcount := ('argcount args)
-    using import itertools
+
     let args =
         ->> ('args args)
-            map typename->Ctypename
+            map typename->C-typename
             Value.arglist-sink argcount
     let dummy-values =
         ->> ('args args)
@@ -87,17 +122,11 @@ fn gen-macro-wrapper-fn (macro args)
                     "arg" .. (tostring i)
             Value.arglist-sink argcount
 
-    stringtools.interpolate
-        """"typeof(${macro}(${gen-C-arglist dummy-values}))
-            ${macro-wrapper-prefix}${macro} (${gen-C-arglist fn-args}) {
-                return ${macro}(${gen-C-arglist forwarded});
-            }
+    stringtools.interpolate MACRO_WRAPPER_TEMPLATE
 
+# REFACTOR out
 fn gen-constant-wrapper-fn (macro)
-    stringtools.interpolate
-        """"typeof(${macro}) ${constant-wrapper-prefix}${macro} () {
-                return ${macro};
-            }
+    stringtools.interpolate CONSTANT_WRAPPER_TEMPLATE
 
 sugar foreign (args...)
     let args result include-args code =
@@ -159,3 +188,8 @@ sugar foreign (args...)
     _
         qq [(cons 'include include-args)]
         next-expr
+
+do
+    let
+        typename->C-typename
+        gen-C-arglist
