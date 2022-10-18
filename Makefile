@@ -7,11 +7,12 @@ init: .spack-env
 	spack -e . install
 
 sanity:
-    scopes -e -m scoot.sanity
+	scopes -e -m scoot.sanity
 .PHONY: sanity
 
 test:
-    scopes -e ./tests/*.sc
+	scopes -e ./tests/*.sc
+	scopes -e ./tests/**/*.sc
 .PHONY: test
 
 clean:

@@ -3,6 +3,10 @@
 
 using import testing
 
+print "----------------------------------------"
+print "sanity"
+print "----------------------------------------"
+
 let sanity = (import scoot.__sanity)
 
 test
