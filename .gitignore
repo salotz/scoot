@@ -2,3 +2,6 @@
 # lockfile will not work everywhere
 spack.lock
 .spack-env
+
+scopes-pkg.json
+scopes-pkg.schema.json

@@ -1,0 +1,29 @@
+project
+    name scoot
+    license MIT
+
+    description "Extended standard library for scopes"
+
+    urls
+        homepage https://github.com/salotz/scoot
+        repository https://github.com/salotz/scoot.git
+
+    authors
+        "Samuel Lotz" salotz@salotz.info
+    maintainers
+        "Samuel Lotz" salotz@salotz.info
+    keywords
+        scopes
+        ffi
+        
+package
+    current-version "0.0"
+    versions;
+    provides
+        modules
+            scoot
+scopes
+    versions
+        (>= "0.18")
+
+dependencies;
